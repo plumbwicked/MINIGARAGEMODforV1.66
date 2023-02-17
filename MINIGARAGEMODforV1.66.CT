@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="42">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2</ID>
+      <Description>"Activate Mini Garage Mod"</Description>
+      <Options moHideChildren="1" moActivateChildrenAsWell="1" moDeactivateChildrenAsWell="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+//code from here to '[DISABLE]' will be used to enable the cheat
+{$lua}
+
+
+function MiniGarageMod()
+
+	local UDF1=createForm(true)
+	TCOMP(UDF1,{Caption='GTA5[1.66] Mini Garage Mod',Width=330,Height=200,Position='poScreenCenter',BorderStyle='bsSingle',Align='alNone',Visible=true,Color=0x808080})
+
+    local CELabel1=createLabel(UDF1)
+    TCOMP(CELabel1,{Caption='Pick the Vehicle you want to Change from your Garage:',Left=5,Top=5,Height=30,Width=300})
+    CELabel1.Font.Size = 10
+    CELabel1.Font.Color = 0
+
+
+	local CEComboBox1=createComboBox(UDF1)
+	TCOMP(CEComboBox1,{Left=5,Top=30,Width=180,Height=100,DropDownCount=20,Align='alNone',Enabled=true,Visible=true,Anchors='[akTop,akLeft]',BidiMode='bdLeftToRight',CharCase='ecNormal',Color=536870912})
+    CEComboBox1.Items.clear()
+	CEComboBox1.items.add("Garage Vehicle List")
+	CEComboBox1.OnDropDown=function()
+		CEComboBox1.Items.clear()
+		CEComboBox1.items.add("Garage Vehicle List")
+		GetVehicleSlots()
+		for k,v in pairs(tbl_GSV) do
+			CEComboBox1.items.add(string.format('[%i] %s (%s)',v[1],v[2],v[4]))
+		end
+		CEComboBox1.ItemIndex=0
+	end
+
+local CELabel4=createLabel(UDF1)
+    TCOMP(CELabel4,{Caption='Pick the Vehicle you would like to Swap With:',Left=5,Top=75,Height=30,Width=300})
+    CELabel4.Font.Size = 10
+    CELabel4.Font.Color = 0
+
+    local CEComboBox2=createComboBox(UDF1)
+	TCOMP(CEComboBox2,{Left=5,Top=100,Width=180,Height=23,DropDownCount=20,Align='alNone',Enabled=true,Visible=true,Anchors='[akTop,akLeft]',BidiMode='bdLeftToRight',CharCase='ecNormal',Color=536870912})
+	CEComboBox2.items.add("All Vehicle List")
+	for k,v in pairs(tbl_Vehicles) do CEComboBox2.items.add(v[1]) end
+	CEComboBox2.ItemIndex=0
+
+
+	local CEButton1=createButton(UDF1)
+	TCOMP(CEButton1,{Caption='Get Car',Left=95,Top=140,Width=90,Height=50,Enabled=true,Visible=true,Anchors='[akTop,akLeft]',BidiMode='bdLeftToRight'})
+	CEButton1.OnClick=function()
+		local id=CEComboBox1.ItemIndex
+		if id==-1 or id==0 then return end
+		-- note to future me: the second numbers may change as well. larger number = vehicle id, smaller number = mechanic
+		SG('i',2793046+986,tbl_GSV[id][1])
+		SG('i',2793046+983,1)
+	end
+
+	local CEButton2=createButton(UDF1)
+	TCOMP(CEButton2,{Caption='Swap Car',Left=5,Top=140,Width=90,Height=50,Enabled=true,Visible=true,Anchors='[akTop,akLeft]',BidiMode='bdLeftToRight'})
+	CEButton2.OnClick=function()
+		local id,id2=CEComboBox1.ItemIndex,CEComboBox2.ItemIndex
+		if id==-1 or id==0 or id2==-1 or id2==0 then return end
+		SG('i',1586468+1+(tbl_GSV[id][1]*142)+66,tbl_Vehicles[id2][2])
+	end
+    UDF1.OnClose=function() UDF1.destroy()end
+    UDF1.Show()
+
+
+end
+
+[DISABLE]
+
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>1</ID>
+          <Description>"Mini Garage Mod"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+
+{$lua}
+MiniGarageMod()
+
+[DISABLE]
+
+</AssemblerScript>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+  <LuaScript>--666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666--
+
+GTATEMP="Mini Garage Mod for GTA5 v1.66"
+MainForm.Panel5.visible = false
+
+MainForm.Caption = string.format('%s - (UnKnowCheaTs.me)', GTATEMP)
+
+if GlobalPTR==nil then
+	if not openProcess('GTA5.exe') then sleep(250) if getOpenedProcessID()==0 then getAutoAttachList().add('GTA5.exe') sleep(250) end end
+	autoAssemble([[
+	aobscanmodule(GlobalPTR,GTA5.exe,4C 8D 05 ? ? ? ? 4D 8B 08 4D 85 C9 74 11)
+	registerSymbol(GlobalPTR)]])
+	GlobalPTR=getAddress('GlobalPTR');GlobalPTR=GlobalPTR+readInteger(GlobalPTR+3)+7
+	unregisterSymbol('GlobalPTR') registerSymbol('GlobalPTR',GlobalPTR,true)
+end
+
+function GA(Index)
+  local p=getAddressSafe('GlobalPTR')
+  if not p then return end
+  return readQword(p+(8*(Index&gt;&gt;0x12&amp;0x3F)))+(8*(Index&amp;0x3FFFF))
+end
+
+function GG(Type,Index)
+  if Type=="i" then return readInteger(GA(Index))
+  elseif Type=="f" then return readFloat(GA(Index))
+  elseif Type=="s" then return readString(GA(Index))
+   else return "NULL" end
+end
+
+function SG(Type,Index,Value)
+  if Value == nil or Index == nil then return "NULL" end
+  if Type=="i" then writeInteger(GA(Index),Value)
+  elseif Type=="f" then writeFloat(GA(Index),Value)
+  elseif Type=="s" then writeString(GA(Index),Value)
+  else return "NULL" end
+end
+
+function TCOMP(T,C,...) for K,V in pairs(C) do T[K]=V end if select('#',...)&gt;0 then return TCOMP(T,...) else return T end end
+
+function onOpenProcess()
+  local timer = createTimer(nil, false)
+  timer.Interval = 500
+  timer.OnTimer = function(timer)
+    local list = getAddressList()
+      local mem = list.getMemoryRecordByDescription('Start Mod')
+    mem.Active = true
+    timer.Destroy()
+  end
+  timer.Enabled = true
+end
+tbl_Vehicles={
+{"Adder",3078201489},{"Airbus",1283517198},{"Airtug",1560980623},{"Akula",1181327175},{"Akuma",1672195559},{"Alkonost",3929093893},{"Alpha",767087018},{"Alphaz1",2771347558},{"Ambulance",1171614426},{"Annihilator",837858166},{"Annihilator2",295054921},{"Apc",562680400},{"Ardent",159274291},{"Armytanker",3087536137},{"Armytrailer",2818520053},{"Armytrailer2",2657817814},{"Asbo",1118611807},{"Asea",2485144969},{"Asea2",2487343317},{"Asterope",2391954683},{'Astron',629969764},{"Autarch",3981782132},{"Avarus",2179174271},{"Avenger",2176659152},{"Avenger2",408970549},{"Avisa",2588363614},{"Bagger",2154536131},{"Baletrailer",3895125590},{"Baller",3486135912},{"Baller2",142944341},{"Baller3",1878062887},{"Baller4",634118882},{"Baller5",470404958},{"Baller6",666166960},{'Baller7',359875117},{"Banshee",3253274834},{"Banshee2",633712403},{"Barracks",3471458123},{"Barracks2",1074326203},{"Barracks3",630371791},{"Barrage",4081974053},{"Bati",4180675781},{"Bati2",3403504941},{"Benson",2053223216},{"Besra",1824333165},{"Bestiagts",1274868363},{"Bf400",86520421},{"Bfinjection",1126868326},{"Biff",850991848},{"Bifta",3945366167},{"Bison",4278019151},{"Bison2",2072156101},{"Bison3",1739845664},{"Bjxl",850565707},{"Blade",3089165662},{"Blazer",2166734073},{"Blazer2",4246935337},{"Blazer3",3025077634},{"Blazer4",3854198872},{"Blazer5",2704629607},{"Blimp",4143991942},{"Blimp2",3681241380},{"Blimp3",3987008919},{"Blista",3950024287},{"Blista2",1039032026},{"Blista3",3703315515},{"Bmx",1131912276},{"Boattrailer",524108981},{"Bobcatxl",1069929536},{"Bodhi2",2859047862},{"Bombushka",4262088844},{"Boor",996383885},{"Boxville",2307837162},{"Boxville2",4061868990},{"Boxville3",121658888},{"Boxville4",444171386},{"Boxville5",682434785},{"Brawler",2815302597},{"Brickade",3989239879},{"Brickade2",2718380883},{"Brioso",1549126457},{"Brioso2",1429622905},{"Brioso3",15214558},{"Broadway",2361724968},{"Bruiser",668439077},{"Bruiser2",2600885406},{"Bruiser3",2252616474},{"Brutus",2139203625},{"Brutus2",2403970600},{"Brutus3",2038858402},{"Btype",117401876},{"Btype2",3463132580},{"Btype3",3692679425},{"Buccaneer",3612755468},{"Buccaneer2",3281516360},{"Buffalo",3990165190},{"Buffalo2",736902334},{"Buffalo3",237764926},{'Buffalo4',3675036420},{"Bulldozer",1886712733},{"Bullet",2598821281},{"Burrito",2948279460},{"Burrito2",3387490166},
+{"Burrito3",2551651283},{"Burrito4",893081117},{"Burrito5",1132262048},{"Bus",3581397346},{"Buzzard",788747387},{"Buzzard2",745926877},{"Cablecar",3334677549},{"Caddy",1147287684},{"Caddy2",3757070668},{"Caddy3",3525819835},{"Calico",3101054893},{"Camper",1876516712},{"Caracara",1254014755},{"Caracara2",2945871676},{"Carbonizzare",2072687711},{"Carbonrs",11251904},{"Cargobob",4244420235},{"Cargobob2",1621617168},{"Cargobob3",1394036463},{"Cargobob4",2025593404},{"Cargoplane",368211810},{"Cargoplane2",2336777441},{"Casco",941800958},{"Cavalcade",2006918058},{"Cavalcade2",3505073125},{"Cerberus",3493417227},{"Cerberus2",679453769},{"Cerberus3",1909700336},{'Champion',3379732821},{"Cheburek",3306466016},{"Cheetah",2983812512},{"Cheetah2",223240013},{"Chernobog",3602674979},{"Chimera",6774487},{"Chino",349605904},{"Chino2",2933279331},{'Cinquemila',2767531027},{"Cliffhanger",390201602},{"Clique",2728360112},{"Club",2196012677},{"Coach",2222034228},{"Cog55",906642318},{"Cog552",704435172},{"Cogcabrio",330661258},{"Cognoscenti",2264796000},{"Cognoscenti2",3690124666},{"Comet",1063483177},{"Comet2",3249425686},{"Comet3",2272483501},{"Comet4",1561920505},{"Comet5",661493923},{"Comet6",2568944644},{'Comet7',1141395928},{"Conada",3817135397},{"Contender",683047626},{"Coquette",108773431},{"Coquette2",1011753235},{"Coquette3",784565758},{"Coquette4",2566281822},{"Corsita",3540279623},{"Cruiser",448402357},{"Crusader",321739290},{"Cuban800",3650256867},{"Cutter",3288047904},{"Cyclone",1392481335},{"Cypher",1755697647},{"Daemon",2006142190},{"Daemon2",2890830793},{"Deathbike",4267640610},{"Deathbike2",2482017624},{"Deathbike3",2920466844},{"Defiler",822018448},{'Deity',1532171089},{"Deluxo",1483171323},{"Deveste",1591739866},{"Deviant",1279262537},{"Diablous",4055125828},{"Diablous2",1790834270},{"Dilettante",3164157193},{"Dilettante2",1682114128},{"Dinghy",1033245328},{"Dinghy2",276773164},{"Dinghy3",509498602},{"Dinghy4",867467158},{"Dingy5",3314393930},{"Dloader",1770332643},{"Docktrailer",2154757102},{"Docktug",3410276810},{"Dodo",3393804037},{"Dominator",80636076},{"Dominator2",3379262425},{"Dominator3",3308022675},{"Dominator4",3606777648},{"Dominator5",2919906639},{"Dominator6",3001042683},{"DOMINATOR7",426742808},{"DOMINATOR8",736672010},{"Double",2623969160},{"Drafter",686471183},{"Draugur",3526730918},{"Dubsta",1177543287},{"Dubsta2",3900892662},{"Dubsta3",3057713523},{"Dukes",723973206},{"Dukes2",3968823444},
+{"Dukes3",2134119907},{"Dump",2164484578},{"Dune",2633113103},{"Dune2",534258863},{"Dune3",1897744184},{"Dune4",3467805257},{"Dune5",3982671785},{"Duster",970356638},{"Dynasty",310284501},{"Elegy",196747873},{"Elegy2",3728579874},{"Ellie",3027423925},{"Emerus",1323778901},{"Emperor",3609690755},{"Emperor2",2411965148},{"Emperor3",3053254478},{"Enduro",1753414259},{"Entity2",2174267100},{"Entity3",1748565021},{"Entityxf",3003014393},{"Esskey",2035069708},{"Eudora",3045179290},{"Euros",2038480341},{"Everon",2538945576},{"Everon2",4163619118},{"Exemplar",4289813342},{"F620",3703357000},{"Faction",2175389151},{"Faction2",2504420315},{"Faction3",2255212070},{"Fagaloa",1617472902},{"Faggio",2452219115},{"Faggio2",55628203},{"Faggio3",3005788552},{"Fbi",1127131465},{"Fbi2",2647026068},{"Fcr",627535535},{"Fcr2",3537231886},{"Felon",3903372712},{"Felon2",4205676014},{"Feltzer2",2299640309},{"Feltzer3",2728226064},{"Firetruk",1938952078},{"Fixter",3458454463},{"Flashgt",3035832600},{"Flatbed",1353720154},{"Fmj",1426219628},{"Forklift",1491375716},{"Formula",340154634},{"Formula2",2334210311},{"Fq2",3157435195},{"Freecrawler",4240635011},{"Freight",1030400667},{"Freightcar",184361638},{"Freightcont1",920453016},{"Freightcont2",240201337},{"Freightgrain",642617954},{"Freighttrailer",3517691494},{"Frogger",744705981},{"Frogger2",1949211328},{"Fugitive",1909141499},{"Furia",960812448},{"Furoregt",3205927392},{"Fusilade",499169875},{"Futo",2016857647},{"Futo2",2787736776},{"Gargoyle",741090084},{"Gauntlet",2494797253},{"Gauntlet2",349315417},{"Gauntlet3",722226637},{"Gauntlet4",1934384720},{"Gauntlet5",2172320429},{"Gb200",1909189272},{"Gburrito",2549763894},{"Gburrito2",296357396},{"Glendale",75131841},{"Glendale2",3381377750},{"Gp1",1234311532},{"Graintrailer",1019737494},{"Granger",2519238556},{"Granger2",4033620423},{"Greenwood",40817712},{"Gresley",2751205197},{"Growler",1304459735},{"Gt500",2215179066},{"Guardian",2186977100},{"Habanero",884422927},{"Hakuchou",1265391242},{"Hakuchou2",4039289119},{"Halftrack",4262731174},{"Handler",444583674},{"Hauler",1518533038},{"Hauler2",387748548},{"Havok",2310691317},{"Hellion",3932816511},{"Hermes",15219735},{"Hexer",301427732},{"Hotknife",37348240},{"Hotring",1115909093},{"Howard",3287439187},
+{"Hunter",4252008158},{"Huntley",486987393},{"Hustler",600450546},{"Hydra",970385471},{'Ignus',2850852987},{"Imorgon",3162245632},{"Impaler",2198276962},{"Impaler2",1009171724},{"Impaler3",2370166601},{"Impaler4",2550461639},{"Imperator",444994115},{"Imperator2",1637620610},{"Imperator3",3539435063},{"Infernus",418536135},{"Infernus2",2889029532},{"Ingot",3005245074},{"Innovation",4135840458},{"Insurgent",2434067162},{"Insurgent2",2071877360},{"Insurgent3",2370534026},{"Intruder",886934177},{"Issi2",3117103977},{"Issi3",931280609},{"Issi4",628003514},{"Issi5",1537277726},{"Issi6",1239571361},{"Issi7",1854776567},{"Issi8",1550581940},{"Italigtb",2246633323},{"Italigtb2",3812247419},{"Italigto",3963499524},{"Italirsx",3145241962},{'Iwagen',662793086},{"Jackal",3670438162},{"Jb700",1051415893},{"Jb7002",394110044},{"Jester",2997294755},{"Jester2",3188613414},{"Jester3",4080061290},{"Jester4",2712905841},{"Jet",1058115860},{"Jetmax",861409633},{"Journey",4174679674},{"Journey2",2667889793},{'Jubilee',461465043},{"Jugular",4086055493},{"Kalahari",92612664},{"Kamacho",4173521127},{"Kanjo",409049982},{"Kanjosj",4230891418},{"Khamelion",544021352},{"Khanjali",2859440138},{"Komoda",3460613305},{"Kosatka",1336872304},{"Krieger",3630826055},{"Kuruma",2922118804},{"Kuruma2",410882957},{"Landstalker",1269098716},{"Landstalker2",3456868130},{"Lazer",3013282534},{"Le7b",3062131285},{"Lectro",640818791},{"Lguard",469291905},{"Limo2",4180339789},{"LM87",4284049613},{"Locust",3353694737},{"Longfin",1861786828},{"Lurcher",2068293287},{"Luxor",621481054},{"Luxor2",3080673438},{"Lynx",482197771},{"Mamba",2634021974},{"Mammatus",2548391185},{"Manana",2170765704},{"Manana2",1717532765},{"Manchez",2771538552},{"Manchez2",1086534307},{"Manchez3",1384502824},{"Marquis",3251507587},{"Marshall",1233534620},{"Massacro",4152024626},{"Massacro2",3663206819},{"Maverick",2634305738},{"Menacer",2044532910},{"Mesa",914654722},{"Mesa2",3546958660},{"Mesa3",2230595153},{"Metrotrain",868868440},{"Michelli",1046206681},{"Microlight",2531412055},{"Miljet",165154707},{"Minitank",3040635986},{"Minivan",3984502180},{"Minivan2",3168702960},{"Mixer",3510150843},{"Mixer2",475220373},{"Mogul",3545667823},{"Molotok",1565978651},{"Monroe",3861591579},{"Monster",3449006043},{"Monster3",1721676810},{"Monster4",840387324},{"Monster5",3579220348},{"Moonbeam",525509695},{"Moonbeam2",1896491931},
+{"Mower",1783355638},{"Mule",904750859},{"Mule2",3244501995},{"Mule3",2242229361},{"Mule4",1945374990},{'Mule5',1343932732},{"Nebula",3412338231},{"Nemesis",3660088182},{"Neo",2674840994},{"Neon",2445973230},{"Nero",1034187331},{"Nero2",1093792632},{"Nightblade",2688780135},{"Nightshade",2351681756},{"Nightshark",433954513},{"Nimbus",2999939664},{"Ninef",1032823388},{"Ninef2",2833484545},{"Nokota",1036591958},{"Novak",2465530446},{"Omnis",3517794615},{"Omnisegt",3789743831},{"Openwheel1",1492612435},{"Openwheel2",1181339704},{"Oppressor",884483972},{"Oppressor2",2069146067},{"Oracle",1348744438},{"Oracle2",3783366066},{"Osiris",1987142870},{"Outlaw",408825843},{"Packer",569305213},{"Panthere",2100457220},{"Panto",3863274624},{"Paradise",1488164764},{"Paragon",3847255899},{"Paragon2",1416466158},{"Pariah",867799010},{"Patriot",3486509883},{"Patriot2",3874056184},{'Patriot3',3624880708},{"Patrolboat",4018222598},{"Pbus",2287941233},{"Pbus2",345756458},{"Pcj",3385765638},{"Penetrator",2536829930},{"Penumbra",3917501776},{"Penumbra2",3663644634},{"Peyote",1830407356},{"Peyote2",2490551588},{"Peyote3",1107404867},{"Pfister811",2465164804},{"Phantom",2157618379},{"Phantom2",2645431192},{"Phantom3",177270108},{"Phoenix",2199527893},{"Picador",1507916787},{"Pigalle",1078682497},{"Police",2046537925},{"Police2",2667966721},{"Police3",1912215274},{"Police4",2321795001},{"Policeb",4260343491},{"Policeold1",2758042359},{"Policeold2",2515846680},{"Policet",456714581},{"Polmav",353883353},{"Pony",4175309224},{"Pony2",943752001},{"Postlude",4000288633},{"Powersurge",2908631255},{"Pounder",2112052861},{"Pounder2",1653666139},{"Prairie",2844316578},{"Pranger",741586030},{"Predator",3806844075},{"Premier",2411098011},{"Previon",1416471345},{"Primo",3144368207},{"Primo2",2254540506},{"Proptrailer",356391690},{"Prototipo",2123327359},{"Pyro",2908775872},{"Radi",2643899483},{"Raiden",2765724541},{"Raketrailer",390902130},{"Rallytruck",2191146052},{"Rancherxl",1645267888},{"Rancherxl2",1933662059},{"Rapidgt",2360515092},{"Rapidgt2",1737773231},{"Rapidgt3",2049897956},{"Raptor",3620039993},{"Ratbike",1873600305},{"Ratloader",3627815886},{"Ratloader2",3705788919},{"Rcbandito",4008920556},{"Reaper",234062309},{"Rebel",3087195462},{"Rebel2",2249373259},{"Rebla",83136452},{'Reever',1993851908},
+{"Regina",4280472072},{"Remus",1377217886},{"Rentalbus",3196165219},{"Retinue",1841130506},{"Retinue2",2031587082},{"Revolter",3884762073},{"Rhapsody",841808271},{"Rhinehart",2439462158},{"Rhino",782665360},{"Riata",2762269779},{"Riot",3089277354},{"Riot2",2601952180},{"Ripley",3448987385},{"Rocoto",2136773105},{"Rogue",3319621991},{"Romero",627094268},{"Rrocket",916547552},{"Rt3000",3842363289},{"Rubble",2589662668},{"Ruffian",3401388520},{"Ruiner",4067225593},{"Ruiner2",941494461},{"Ruiner3",777714999},{"Ruiner4",1706945532},{"Rumpo",1162065741},{"Rumpo2",2518351607},{"Rumpo3",1475773103},{"Ruston",719660200},{"R300",1076201208},{"S80",3970348707},{"Sabregt",2609945748},{"Sabregt2",223258115},{"Sadler",3695398481},{"Sadler2",734217681},{"Sanchez",788045382},{"Sanchez2",2841686334},{"Sanctus",1491277511},{"Sandking",3105951696},{"Sandking2",989381445},{"Savage",4212341271},{"Savestra",903794909},{"Sc1",1352136073},{"Scarab",3147997943},{"Scarab2",1542143200},{"Scarab3",3715219435},{"Schafter2",3039514899},{"Schafter3",2809443750},{"Schafter4",1489967196},{"Schafter5",3406724313},{"Schafter6",1922255844},{"Schlagen",3787471536},{"Schwarzer",3548084598},{"Scorcher",4108429845},{"Scramjet",3656405053},{"Scrap",2594165727},{"Seabreeze",3902291871},{"Seashark",3264692260},{"Seashark2",3678636260},{"Seashark3",3983945033},{"Seasparrow",3568198617},{"Seasparrow2",1229411063},{"Seasparrow3",1593933419},{"Seminole",1221512915},{"Seminole2",2484160806},{"Sentinel",1349725314},{"Sentinel2",873639469},{"Sentinel3",1104234922},{"Sentinel4",2938086457},{"Serrano",1337041428},{"Seven70",2537130571},{"Shamal",3080461301},{"Sheava",819197656},{"Sheriff",2611638396},{"Sheriff2",1922257928},{'Shinobi',1353120668},{"Shotaro",3889340782},{"Skylift",1044954915},{"Slamtruck",3249056020},{"Slamvan",729783779},{"Slamvan2",833469436},{"Slamvan3",1119641113},{"Slamvan4",2233918197},{"Slamvan5",373261600},{"Slamvan6",1742022738},{"SM722",775514032},{"Sovereign",743478836},{"Specter",1886268224},{"Specter2",1074745671},{"Speeder",231083307},{"Speeder2",437538602},{"Speedo",3484649228},{"Speedo2",728614474},{"Speedo4",219613597},{"Squaddie",4192631813},{"Squalo",400514754},{"Stafford",321186144},{"Stalion",1923400478},{"Stalion2",3893323758},{"Stanier",2817386317},{"Starling",2594093022},{"Stinger",1545842587},{"Stingergt",2196019706},{"Stockade",1747439474},
+{"Stockade3",4080511798},{"Stratum",1723137093},{"Streiter",1741861769},{"Stretch",2333339779},{"Strikeforce",1692272545},{"Stromberg",886810209},{"Stryder",301304410},{"Stunt",2172210288},{"Submersible",771711535},{"Submersible2",3228633070},{"Sugoi",987469656},{"Sultan",970598228},{"Sultan2",872704284},{"Sultan3",4003946083},{"Sultanrs",3999278268},{"Suntrap",4012021193},{"Superd",1123216662},{"Supervolito",710198397},{"Supervolito2",2623428164},{"Surano",384071873},{"Surfer",699456151},{"Surfer2",2983726598},{"Surfer3",3259477733},{"Surge",2400073108},{"Swift",3955379698},{"Swift2",1075432268},{"Swinger",500482303},{"T20",1663218586},{"Taco",1951180813},{"Tahoma",3833117047},{"Tailgater",3286105550},{"Tailgater2",3050505892},{"Taipan",3160260734},{"Tampa",972671128},{"Tampa2",3223586949},{"Tampa3",3084515313},{"Tanker",3564062519},{"Tanker2",1956216962},{"Tankercar",586013744},{"Taxi",3338918751},{"Technical",2198148358},{"Technical2",1180875963},{"Technical3",1356124575},{"Tempesta",272929391},{"Tenf",3400983137},{"Tenf2",274946574},{"Terbyte",2306538597},{"Tezeract",1031562256},{"Thrax",1044193113},{"Thrust",1836027715},{"Thruster",1489874736},{"Tigon",2936769864},{"Tiptruck",48339065},{"Tiptruck2",3347205726},{"Titan",1981688531},{"Toreador",1455990255},{"Torero",1504306544},{"Torero2",4129572538},{"Tornado",464687292},{"Tornado2",1531094468},{"Tornado3",1762279763},{"Tornado4",2261744861},{"Tornado5",2497353967},{"Tornado6",2736567667},{"Toro",1070967343},{"Toro2",908897389},{"Toros",3126015148},{"Tourbus",1941029835},{"Towtruck",2971866336},{"Towtruck2",3852654278},{"Tr2",2078290630},{"Tr3",1784254509},{"Tr4",2091594960},{"Tractor",1641462412},{"Tractor2",2218488798},{"Tractor3",1445631933},{"Trailerlarge",1502869817},{"Trailerlogs",2016027501},{"Trailers",3417488910},{"Trailers2",2715434129},{"Trailers3",2236089197},{"Trailers4",3194418602},{"Trailersmall",712162987},{"Trailersmall2",2413121211},{"Trash",1917016601},{"Trash2",3039269212},{"Trflat",2942498482},{"Tribike",1127861609},{"Tribike2",3061159916},{"Tribike3",3894672200},{"Trophytruck",101905590},{"Trophytruck2",3631668194},{"Tropic",290013743},{"Tropic2",1448677353},{"Tropos",1887331236},{"Tug",2194326579},{"Tula",1043222410},{"Tulip",1456744817},{"Tulip2",268758436},{"Turismo2",3312836369},
+{"Turismor",408192225},{"Tvtrailer",2524324030},{"Tyrant",3918533058},{"Tyrus",2067820283},{"Utillitruck",516990260},{"Utillitruck2",887537515},{"Utillitruck3",2132890591},{"Vacca",338562499},{"Vader",4154065143},{"Vagner",1939284556},{"Vagrant",740289177},{"Valkyrie",2694714877},{"Valkyrie2",1543134283},{"Vamos",4245851645},{"Vectre",2754593701},{"Velum",2621610858},{"Velum2",1077420264},{"Verlierer2",1102544804},{"Verus",298565713},{"Vestra",1341619767},{"Vetir",2014313426},{"Veto",3437611258},{"Veto2",2802050217},{"Vigero",3469130167},{"Vigero2",2536587772},{"Vigilante",3052358707},{"Vindicator",2941886209},{"Virgo",3796912450},{"Virgo2",3395457658},{"Virgo3",16646064},{"Virtue",669204833},{"Viseris",3903371924},{"Visione",3296789504},{"Volatol",447548909},{"Volatus",2449479409},{"Voltic",2672523198},{"Voltic2",989294410},{"Voodoo",2006667053},{"Voodoo2",523724515},{"Vortex",3685342204},{"Vstr",1456336509},{"Warrener",1373123368},{"Warrener2",579912970},{"Washington",1777363799},{"Wastelander",2382949506},{"Windsor",1581459400},{"Windsor2",2364918497},{"Weevil",1644055914},{"Weevil2",3300595976},{"Winky",4084658662},{"Wolfsbane",3676349299},{"Xa21",917809321},{"Xls",1203490606},{"Xls2",3862958888},{"Yosemite",1871995513},{"Yosemite2",1693751655},{"Yosemite3",67753863},{"Youga",65402552},{"Youga2",1026149675},{"Youga3",1802742206},{'Youga4',1486521356},{"Z190",838982985},{'Zeno',655665811},{"Zentorno",2891838741},{"Zhaba",1284356689},{"Zion",3172678083},{"Zion2",3101863448},{"Zion3",1862507111},{"Zombiea",3285698347},{"Zombieb",3724934023},{"Zorrusso",3612858749},{"Zr350",2436313176},{"Zr380",540101442},{"Zr3802",3188846534},{"Zr3803",2816263004},{"Ztype",758895617}
+}
+
+function FindVehicleName(Hash)
+	if not Hash or Hash==0 then return false end
+	for k,v in pairs(tbl_Vehicles) do
+		if tonumber(Hash)==tonumber(v[2]) then return v[1] end
+	end
+	return false
+end
+function GetVehicleSlots()
+	tbl_GSV={}
+	local max_slots=GG('i',1586468) -- NEEDS TO BE UPDATED EACH DLC
+	for i=0,max_slots,1 do
+		local hash=GG('i',1586468+1+(i*142)+66)
+		local name=FindVehicleName(hash)
+		if name then
+			table.insert(tbl_GSV, {i,name,hash,GG('s',1586468+1+(i*142)+1)})
+		end
+	end
+end
+
+</LuaScript>
+</CheatTable>
